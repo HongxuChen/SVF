@@ -1,5 +1,16 @@
 add_subdirectory(CUDD)
 
+set(MTA_SOURCES
+        MTA/FSMPTA.cpp
+        MTA/LockAnalysis.cpp
+        MTA/MHP.cpp
+        MTA/MTA.cpp
+        MTA/MTAAnnotator.cpp
+        MTA/MTAResultValidator.cpp
+        MTA/MTAStat.cpp
+        MTA/PCG.cpp
+        MTA/TCT.cpp)
+
 # Due to a mutual dependencies, all the sub projects of the SVG are merged here
 # Otherwise it is impossible to load the dependencies in opt
 # NOTE: if the SVF should be linked into opt, we should probably use the individual sub projects here, rather than the combined project 
@@ -49,7 +60,9 @@ set(SOURCES
     WPA/FlowSensitive.cpp
     WPA/FlowSensitiveStat.cpp
     WPA/TypeAnalysis.cpp
-    WPA/WPAPass.cpp)
+    WPA/WPAPass.cpp
+    ${MTA_SOURCES}
+    )
 
 add_llvm_loadable_module(Svf ${SOURCES})
 add_llvm_Library(LLVMSvf ${SOURCES})
