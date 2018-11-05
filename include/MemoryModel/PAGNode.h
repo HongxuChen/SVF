@@ -84,6 +84,13 @@ public:
         return value;
     }
 
+    /// Return type of the value
+    inline virtual const llvm::Type* getType() const{
+        if (value && value->hasName())
+            return value->getType();
+        return NULL;
+    }
+
     inline bool hasValue() const {
         return (this->getNodeKind() != DummyValNode &&
                 this->getNodeKind() != DummyObjNode &&
@@ -102,7 +109,7 @@ public:
         return isATPointer;
     }
     /// Get name of the LLVM value
-    virtual const std::string getValueName() = 0;
+    virtual const std::string getValueName() const = 0;
 
     /// Get incoming PAG edges
     inline PAGEdge::PAGEdgeSetTy& getIncomingEdges(PAGEdge::PEDGEK kind) {
@@ -246,7 +253,7 @@ public:
         PAGNode(val, i, ty) {
     }
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         if (value && value->hasName())
             return value->getName();
         return "";
@@ -308,7 +315,7 @@ class GepValPN: public ValPN {
 
 private:
     LocationSet ls;	// LocationSet
-    const llvm::Type *type;
+    const llvm::Type *gepValType;
     u32_t fieldIdx;
 
 public:
@@ -330,24 +337,24 @@ public:
 
     /// Constructor
     GepValPN(const llvm::Value* val, NodeID i, const LocationSet& l, const llvm::Type *ty, u32_t idx) :
-        ValPN(val, i, GepValNode), ls(l), type(ty), fieldIdx(idx) {
+        ValPN(val, i, GepValNode), ls(l), gepValType(ty), fieldIdx(idx) {
     }
 
     /// offset of the base value node
-    inline Size_t getOffset() {
+    inline u32_t getOffset() const {
         return ls.getOffset();
     }
 
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         if (value && value->hasName())
             return value->getName().str() + "_" + llvm::utostr(getOffset());
         return "offset_" + llvm::utostr(getOffset());
     }
 
-    const llvm::Type *getType() const {
-        return type;
-    }
+	inline const llvm::Type* getType() const {
+		return gepValType;
+	}
 
     u32_t getFieldIdx() const {
         return fieldIdx;
@@ -381,17 +388,17 @@ public:
     //@}
 
     /// Constructor
-    GepObjPN(const llvm::Value* val, NodeID i, const MemObj* mem, const LocationSet& l) :
-        ObjPN(val, i, mem, GepObjNode), ls(l) {
+    GepObjPN(const MemObj* mem, NodeID i, const LocationSet& l) :
+        ObjPN(mem->getRefVal(), i, mem, GepObjNode), ls(l) {
     }
 
     /// offset of the mem object
-    inline const LocationSet& getLocationSet() {
+    inline const LocationSet& getLocationSet() const {
         return ls;
     }
 
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         if (value && value->hasName())
             return value->getName().str() + "_" + llvm::itostr(ls.getOffset());
         return "offset_" + llvm::itostr(ls.getOffset());
@@ -427,7 +434,7 @@ public:
     }
 
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         if (value && value->hasName())
             return value->getName().str() + "_field_insensitive";
         return "field_insensitive";
@@ -459,7 +466,7 @@ public:
     }
 
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    const std::string getValueName() const {
         const llvm::Function* fun = llvm::cast<llvm::Function>(value);
         return fun->getName().str() + "_ret";
     }
@@ -491,7 +498,7 @@ public:
     }
 
     /// Return name of a LLVM value
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         const llvm::Function* fun = llvm::cast<llvm::Function>(value);
         return fun->getName().str() + "_vararg";
     }
@@ -525,7 +532,7 @@ public:
 
 
     /// Return name of this node
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         return "dummyVal";
     }
 };
@@ -555,7 +562,7 @@ public:
     }
 
     /// Return name of this node
-    const std::string getValueName() {
+    inline const std::string getValueName() const {
         return "dummyObj";
     }
 };
