@@ -19,3 +19,5 @@ doxygen/
 *.log
 *.status
 cmake-build-debug/
+cmake-build-relwithdebinfo/
+cmake-build-release/

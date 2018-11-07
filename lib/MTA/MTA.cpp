@@ -45,6 +45,11 @@ MTA::~MTA() {
     //    delete tct;
 }
 
+bool MTA::runOnModule(Module& module) {
+	SVFModule m(module);
+    return runOnModule(m);
+}
+
 /*!
  * Perform data race detection
  */
