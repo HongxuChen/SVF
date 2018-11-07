@@ -13,6 +13,7 @@
 #include "WPA/Andersen.h"
 #include "MTA/FSMPTA.h"
 #include "Util/AnalysisUtil.h"
+#include "Util/Debug.h"
 
 #include <llvm/Support/CommandLine.h>	// for llvm command line options
 #include <llvm/IR/InstIterator.h>	// for inst iteration
@@ -49,6 +50,9 @@ MTA::~MTA() {
  */
 bool MTA::runOnModule(SVFModule module) {
 
+    if (module.empty()) {
+      FATAL("svfmodule has no modules");
+    }
 
     modulePass = this;
 

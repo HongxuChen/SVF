@@ -31,6 +31,7 @@
 #define INCLUDE_UTIL_CXTSTMT_H_
 
 #include "Util/BasicTypes.h"
+#include "llvm/IR/Instructions.h"
 
 /*!
  * Context-sensitive thread statement <c,s>
