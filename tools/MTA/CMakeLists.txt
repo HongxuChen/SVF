@@ -8,5 +8,5 @@ else()
     target_link_libraries( mta LLVMSvf LLVMCudd ${llvm_libs} )
 
     set_target_properties( mta PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
+                           RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 endif()
