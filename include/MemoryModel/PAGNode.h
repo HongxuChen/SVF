@@ -86,7 +86,7 @@ public:
 
     /// Return type of the value
     inline virtual const llvm::Type* getType() const{
-        if (value && value->hasName())
+        if (value)
             return value->getType();
         return NULL;
     }
@@ -302,6 +302,10 @@ public:
         if (value && value->hasName())
             return value->getName();
         return "";
+    }
+    /// Return type of the value
+    inline virtual const llvm::Type* getType() const{
+       return mem->getType();
     }
 };
 

@@ -133,7 +133,6 @@ void SymbolTableInfo::collectStructInfo(const StructType *sty) {
     /// The struct info should not be processed before
     StInfo* stinfo = new StInfo();
     typeToFieldInfo[sty] = stinfo;
-    const StructLayout *stTySL = getDataLayout(getModule().getMainLLVMModule())->getStructLayout( const_cast<StructType *>(sty) );
 
     // Number of fields after flattening the struct
     u32_t nf = 0;
@@ -143,7 +142,7 @@ void SymbolTableInfo::collectStructInfo(const StructType *sty) {
                 sty->element_end(); it != ie; ++it, ++field_idx) {
         const Type *et = *it;
         // This offset is computed after alignment with the current struct
-        u64_t eOffsetInBytes = stTySL->getElementOffset(field_idx);
+        u64_t eOffsetInBytes = getTypeSizeInBytes(sty, field_idx);
         //The offset is where this element will be placed in the exp. struct.
         /// FIXME: As the layout size is uint_64, here we assume
         /// offset with uint_32 (Size_t) is large enough and will not cause overflow
@@ -249,7 +248,7 @@ bool SymbolTableInfo::computeGepOffset(const llvm::User *V, LocationSet& ls) {
         // Handling struct here
         if (const StructType *ST = dyn_cast<StructType>(*gi) ) {
             assert(op && "non-const struct index in GEP");
-            const vector<u32_t> &so = SymbolTableInfo::Symbolnfo()->getStructOffsetVec(ST);
+            const vector<u32_t> &so = SymbolTableInfo::Symbolnfo()->getFattenFieldIdxVec(ST);
             if ((unsigned)idx >= so.size()) {
                 outs() << "!! Struct index out of bounds" << idx << "\n";
                 assert(0);
@@ -1005,7 +1004,7 @@ void SymbolTableInfo::handleGlobalInitializerCE(const Constant *C,
     } else if (isa<ConstantStruct>(C)) {
         const StructType *sty = cast<StructType>(C->getType());
         const std::vector<u32_t>& offsetvect =
-            SymbolTableInfo::Symbolnfo()->getStructOffsetVec(sty);
+            SymbolTableInfo::Symbolnfo()->getFattenFieldIdxVec(sty);
         for (u32_t i = 0, e = C->getNumOperands(); i != e; i++) {
             u32_t off = offsetvect[i];
             handleGlobalInitializerCE(cast<Constant>(C->getOperand(i)),
@@ -1093,3 +1092,12 @@ u32_t SymbolTableInfo::getTypeSizeInBytes(const llvm::Type* type) {
         return 0;
 }
 
+u32_t SymbolTableInfo::getTypeSizeInBytes(const StructType *sty, u32_t field_idx){
+
+    const StructLayout *stTySL = getDataLayout(getModule().getMainLLVMModule())->getStructLayout( const_cast<StructType *>(sty) );
+    /// if this struct type does not have any element, i.e., opaque
+    if(sty->isOpaque())
+        return 0;
+    else
+        return stTySL->getElementOffset(field_idx);
+}
