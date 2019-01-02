@@ -106,7 +106,7 @@ public:
     /// Print interleaving results
     void printInterleaving();
 
-private:
+//private:
     /// Update non-candidate functions' interleaving.
     /// Copy interleaving threads of the entry inst to other insts.
     void updateNonCandidateFunInterleaving();
@@ -313,7 +313,7 @@ public:
     inline llvm::ScalarEvolution* getSE(const llvm::Instruction* inst) {
         return tct->getSE(inst);
     }
-private:
+//private:
 
     /// Handle fork
     void handleFork(const CxtStmt& cts,NodeID rootTid);
