@@ -61,7 +61,8 @@ public:
         TD_CONDVAR_DESTROY, /// initial a mutex variable
         TD_BAR_INIT,        /// Barrier init
         TD_BAR_WAIT,         /// Barrier wait
-        HARE_PAR_FOR
+        HARE_PAR_FOR,
+        TD_UNKNOWN
     };
 
     typedef llvm::StringMap<TD_TYPE> TDAPIMap;
@@ -81,17 +82,34 @@ private:
     /// Static reference
     static ThreadAPI* tdAPI;
 
+    static bool mayBeThreadFunc(llvm::StringRef fName) {
+        if (fName.contains_lower("pthread")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+public:
     /// Get the function type if it is a threadAPI function
     inline TD_TYPE getType(const llvm::Function* F) const {
         if(F) {
-            TDAPIMap::const_iterator it= tdAPIMap.find(F->getName().str());
-            if(it != tdAPIMap.end())
+            llvm::StringRef fName = F->getName();
+            TDAPIMap::const_iterator it= tdAPIMap.find(fName.str());
+            if(it != tdAPIMap.end()) {
                 return it->second;
+            } else {
+                if (mayBeThreadFunc(fName)) {
+                    return TD_UNKNOWN;
+                } else {
+                    return TD_DUMMY;
+                }
+            }
+
         }
         return TD_DUMMY;
     }
 
-public:
     /// Return a static reference
     static ThreadAPI* getThreadAPI() {
         if(tdAPI == NULL) {
