@@ -27,6 +27,10 @@ static cl::opt<bool> AndersenAnno("tsan-ander", cl::init(false), cl::desc("Add T
 
 static cl::opt<bool> FSAnno("tsan-fs", cl::init(false), cl::desc("Add TSan annotation according to flow-sensitive analysis"));
 
+static cl::opt<bool> DummyMHP("dummy-MHP", cl::init(false), cl::desc("Do dummy MHP analysis"));
+
+static cl::opt<bool> DummyLS("dummy-LS", cl::init(false), cl::desc("Do dummy LockSet analysis"));
+
 
 char MTA::ID = 0;
 llvm::ModulePass* MTA::modulePass = NULL;
@@ -61,8 +65,17 @@ bool MTA::runOnModule(SVFModule module) {
 
     modulePass = this;
 
-    MHP* mhp = computeMHP(module);
-    LockAnalysis* lsa = computeLocksets(mhp->getTCT());
+    MHP* mhp = nullptr;
+    LockAnalysis *lsa = nullptr;
+
+    if (! DummyMHP) {
+        mhp = computeMHP(module, DummyMHP);
+        if (! DummyLS) {
+            lsa = computeLocksets(mhp->getTCT());
+        }
+    } else {
+        mhp = computeMHP(module, DummyMHP);
+    }
 
 
 
@@ -119,7 +132,7 @@ LockAnalysis* MTA::computeLocksets(TCT* tct) {
     return lsa;
 }
 
-MHP* MTA::computeMHP(SVFModule module) {
+MHP* MTA::computeMHP(SVFModule module, bool dummyMHP) {
 
     DBOUT(DGENERAL, outs() << pasMsg("MTA analysis\n"));
     DBOUT(DMTA, outs() << pasMsg("MTA analysis\n"));
@@ -141,18 +154,29 @@ MHP* MTA::computeMHP(SVFModule module) {
 
     tcg->dump("tcg");
 
-    DBOUT(DGENERAL, outs() << pasMsg("MHP analysis\n"));
-    DBOUT(DMTA, outs() << pasMsg("MHP analysis\n"));
+    if (!dummyMHP) {
 
-    DOTIMESTAT(double mhpStart = stat->getClk());
-    MHP* mhp = new MHP(tct);
-    mhp->analyze();
-    DOTIMESTAT(double mhpEnd = stat->getClk());
-    DOTIMESTAT(stat->MHPTime += (mhpEnd - mhpStart) / TIMEINTERVAL);
+        DBOUT(DGENERAL, outs() << pasMsg("MHP analysis\n"));
+        DBOUT(DMTA, outs() << pasMsg("MHP analysis\n"));
 
-    DBOUT(DGENERAL, outs() << pasMsg("MHP analysis finish\n"));
-    DBOUT(DMTA, outs() << pasMsg("MHP analysis finish\n"));
-    return mhp;
+        DOTIMESTAT(double mhpStart = stat->getClk());
+        MHP *mhp = new MHP(tct);
+        mhp->analyze();
+        DOTIMESTAT(double mhpEnd = stat->getClk());
+        DOTIMESTAT(stat->MHPTime += (mhpEnd - mhpStart) / TIMEINTERVAL);
+
+        DBOUT(DGENERAL, outs() << pasMsg("MHP analysis finish\n"));
+        DBOUT(DMTA, outs() << pasMsg("MHP analysis finish\n"));
+
+        return mhp;
+
+    } else {
+
+        DBOUT(DMTA, outs() << pasMsg("dummy MHP analysis"));
+        return nullptr;
+
+    }
+
 }
 
 ///*!
