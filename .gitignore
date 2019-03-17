@@ -21,4 +21,6 @@ doxygen/
 cmake-build-debug/
 cmake-build-relwithdebinfo/
 cmake-build-release/
-BUILD_RELDBG/
+RELDBG/
+RELEASE/
+DEBUG/
